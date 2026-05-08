@@ -2,26 +2,26 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>推し活！ファンサゲーム</title>
     <style>
         /* 全体のテーマカラー：黄色ベース */
         body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; text-align: center; background: #fffde7; margin: 0; overflow: hidden; }
         #game-container { width: 100vw; height: 100vh; position: relative; background: linear-gradient(#fff9c4, #ffffff); }
         
-        /* オープニング画面 */
+        /* オープニング画面：スマホ向けにフォントサイズ調整 */
         #opening-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #fffde7; display: flex; justify-content: center; align-items: center;
             flex-direction: column; z-index: 200;
         }
-        #opening-screen h1 { font-size: 60px; color: #fbc02d; text-shadow: 2px 2px 0 white; margin-bottom: 10px; }
-        /* サブタイトルのスタイル */
-        #opening-screen h2 { font-size: 30px; color: #f9a825; margin-top: 0; margin-bottom: 30px; }
+        #opening-screen h1 { font-size: 40px; color: #fbc02d; text-shadow: 2px 2px 0 white; margin-bottom: 10px; }
+        #opening-screen h2 { font-size: 22px; color: #f9a825; margin-top: 0; margin-bottom: 30px; }
 
-        /* 推し（アイドル）：画像に切り替え [修正] */
+        /* 推し（アイドル）：スマホ向けに少し小さくし、位置を調整 */
         #idol-container { 
-            position: absolute; top: 10%; right: -400px; 
-            width: 300px; /* 画像のサイズ感を調整 */
+            position: absolute; top: 10%; right: -300px; 
+            width: 240px; 
             transition: right 1.2s ease-out; z-index: 5;
         }
         #idol-img {
@@ -29,44 +29,44 @@
             display: block;
         }
         
-        /* ファン（手前の人）：青色を固定 */
+        /* ファン（手前の人）：位置を少し上に */
         #fan { 
-            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
-            font-size: 100px; z-index: 10;
+            position: absolute; bottom: 28%; left: 50%; transform: translateX(-50%);
+            font-size: 80px; z-index: 10;
             filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(186deg) brightness(118%) contrast(119%);
         }
 
         /* 反応エフェクト */
         #fan-reaction {
-            position: absolute; bottom: 32%; left: 50%; transform: translateX(-50%);
-            font-size: 60px; display: none; z-index: 16;
+            position: absolute; bottom: 38%; left: 50%; transform: translateX(-50%);
+            font-size: 50px; display: none; z-index: 16;
         }
         
-        /* ファンの吹き出し */
+        /* ファンの吹き出し：スマホで見やすいサイズ */
         #fan-speech {
-            position: absolute; bottom: 42%; left: 50%; transform: translateX(-50%);
-            background: white; border: 4px solid #fbc02d; padding: 10px 20px;
-            border-radius: 20px; font-weight: bold; font-size: 22px; display: none; z-index: 15;
+            position: absolute; bottom: 46%; left: 50%; transform: translateX(-50%);
+            background: white; border: 3px solid #fbc02d; padding: 8px 16px;
+            border-radius: 20px; font-weight: bold; font-size: 18px; display: none; z-index: 15;
             white-space: nowrap;
         }
 
-        /* 選択肢のUI */
+        /* 選択肢のUI：画面下部から少し浮かせて、親指で押しやすく [修正] */
         #ui-layer { 
-            position: absolute; bottom: 0; left: 0; width: 100%; 
-            background: rgba(255, 255, 255, 0.95); padding: 20px 0;
-            border-top: 5px solid #fbc02d; display: none; z-index: 20;
+            position: absolute; bottom: 4%; left: 5%; width: 90%; 
+            background: rgba(255, 255, 255, 0.95); padding: 15px 0;
+            border: 4px solid #fbc02d; border-radius: 20px; display: none; z-index: 20;
         }
         .btn { 
-            display: inline-block; margin: 0 10px; padding: 15px 25px; background: #fbc02d; 
-            color: white; border-radius: 15px; cursor: pointer; font-size: 20px; border: none;
+            display: inline-block; margin: 5px; padding: 12px 18px; background: #fbc02d; 
+            color: white; border-radius: 12px; cursor: pointer; font-size: 16px; border: none;
             font-weight: bold; box-shadow: 0 4px 0 #f9a825;
         }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn:active { transform: translateY(3px); box-shadow: none; }
 
         /* ポーズ表示 */
         #pose-display {
-            position: absolute; top: 30%; left: 50%; transform: translateX(-50%); 
-            font-size: 120px; z-index: 12; pointer-events: none;
+            position: absolute; top: 25%; left: 50%; transform: translateX(-50%); 
+            font-size: 100px; z-index: 12; pointer-events: none;
         }
 
         /* 結果表示 */
@@ -75,6 +75,7 @@
             background: white; justify-content: center; align-items: center;
             flex-direction: column; z-index: 100;
         }
+        #result-screen h1 { font-size: 36px; color: #fbc02d; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -83,7 +84,7 @@
     <div id="opening-screen">
         <h1>推し活ゲーム</h1>
         <h2>めざせ神ファンサ！</h2>
-        <button class="btn" style="font-size: 30px; padding: 20px 50px;" onclick="startGame()">ライブスタート！</button>
+        <button class="btn" style="font-size: 24px; padding: 15px 40px;" onclick="startGame()">ライブスタート！</button>
     </div>
 
     <div id="idol-container">
@@ -96,20 +97,20 @@
     <div id="fan">👤</div>
 
     <div id="ui-layer">
-        <p style="margin: 0 0 10px 0; font-weight: bold; color: #f9a825;">ファンにファンサをして！</p>
+        <p style="margin: 0 0 10px 0; font-weight: bold; color: #f9a825; font-size: 14px;">ファンにファンサをして！</p>
         <div id="options"></div>
     </div>
 
     <div id="result-screen">
-        <h1 id="rank-title" style="font-size: 48px; color: #fbc02d;"></h1>
-        <p id="rank-desc" style="font-size: 24px;"></p>
+        <h1 id="rank-title"></h1>
+        <p id="rank-desc" style="font-size: 20px;"></p>
         <button class="btn" onclick="location.reload()">もう一度ライブへ！</button>
     </div>
 </div>
 
 <script>
 const idolContainer = document.getElementById('idol-container');
-const idolImg = document.getElementById('idol-img'); // 画像要素を取得 [追加]
+const idolImg = document.getElementById('idol-img');
 const fan = document.getElementById('fan');
 const fanSpeech = document.getElementById('fan-speech');
 const fanReaction = document.getElementById('fan-reaction');
@@ -118,10 +119,10 @@ const optionsDiv = document.getElementById('options');
 const poseDisplay = document.getElementById('pose-display');
 const openingScreen = document.getElementById('opening-screen');
 
-// アイドル画像のURLリスト [追加]
+// GitHubにアップロードしたファイル名に合わせてください
 const idolImages = [
-    "idol_man.png", // 1枚目の男性アイドル
-    "idol_woman.png"  // 2枚目の女性アイドル
+    "idol_man.png", 
+    "idol_woman.png"
 ];
 
 const poses = [
@@ -145,12 +146,11 @@ function startRound() {
         return;
     }
 
-    // ランダムでアイドル画像を選択して設定 [追加]
     const randomIdolIndex = Math.floor(Math.random() * idolImages.length);
     idolImg.src = idolImages[randomIdolIndex];
 
     idolContainer.style.transition = "none";
-    idolContainer.style.right = "-400px"; // 登場位置を画像サイズに合わせて調整 [修正]
+    idolContainer.style.right = "-300px"; 
     poseDisplay.innerText = "";
     fan.innerText = "👤"; 
     
@@ -160,7 +160,7 @@ function startRound() {
 
     setTimeout(() => {
         idolContainer.style.transition = "right 1.2s ease-out";
-        idolContainer.style.right = "calc(50% - 150px)"; // 中央位置を調整 [修正]
+        idolContainer.style.right = "calc(50% - 120px)"; 
         
         setTimeout(() => {
             const currentQuest = poses[Math.floor(Math.random() * poses.length)];
