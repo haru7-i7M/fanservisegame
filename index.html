@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>推し活！ファンサゲーム</title>
+    <style>
+        /* 全体のテーマカラー：黄色ベース */
+        body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; text-align: center; background: #fffde7; margin: 0; overflow: hidden; }
+        #game-container { width: 100vw; height: 100vh; position: relative; background: linear-gradient(#fff9c4, #ffffff); }
+        
+        /* オープニング画面 */
+        #opening-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fffde7; display: flex; justify-content: center; align-items: center;
+            flex-direction: column; z-index: 200;
+        }
+        #opening-screen h1 { font-size: 60px; color: #fbc02d; text-shadow: 2px 2px 0 white; margin-bottom: 10px; }
+        /* サブタイトルのスタイル */
+        #opening-screen h2 { font-size: 30px; color: #f9a825; margin-top: 0; margin-bottom: 30px; }
+
+        /* 推し（アイドル）：黄色の絵文字 */
+        #idol-container { 
+            position: absolute; top: 15%; right: -350px; 
+            width: 200px; height: 200px;
+            font-size: 180px; 
+            line-height: 200px;
+            transition: right 1.2s ease-out; z-index: 5;
+        }
+        
+        /* ファン（手前の人）：青色を固定 */
+        #fan { 
+            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
+            font-size: 100px; z-index: 10;
+            filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(186deg) brightness(118%) contrast(119%);
+        }
+
+        /* 反応エフェクト */
+        #fan-reaction {
+            position: absolute; bottom: 32%; left: 50%; transform: translateX(-50%);
+            font-size: 60px; display: none; z-index: 16;
+        }
+        
+        /* ファンの吹き出し */
+        #fan-speech {
+            position: absolute; bottom: 42%; left: 50%; transform: translateX(-50%);
+            background: white; border: 4px solid #fbc02d; padding: 10px 20px;
+            border-radius: 20px; font-weight: bold; font-size: 22px; display: none; z-index: 15;
+            white-space: nowrap;
+        }
+
+        /* 選択肢のUI */
+        #ui-layer { 
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            background: rgba(255, 255, 255, 0.95); padding: 20px 0;
+            border-top: 5px solid #fbc02d; display: none; z-index: 20;
+        }
+        .btn { 
+            display: inline-block; margin: 0 10px; padding: 15px 25px; background: #fbc02d; 
+            color: white; border-radius: 15px; cursor: pointer; font-size: 20px; border: none;
+            font-weight: bold; box-shadow: 0 4px 0 #f9a825;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* ポーズ表示 */
+        #pose-display {
+            position: absolute; top: 30%; left: 50%; transform: translateX(-50%); 
+            font-size: 120px; z-index: 12; pointer-events: none;
+        }
+
+        /* 結果表示 */
+        #result-screen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; justify-content: center; align-items: center;
+            flex-direction: column; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="opening-screen">
+        <h1>推し活ゲーム</h1>
+        <h2>めざせ神ファンサ！</h2>
+        <button class="btn" style="font-size: 30px; padding: 20px 50px;" onclick="startGame()">ライブスタート！</button>
+    </div>
+
+    <div id="idol-container">🕺</div>
+    
+    <div id="pose-display"></div>
+    <div id="fan-speech"></div>
+    <div id="fan-reaction"></div>
+    <div id="fan">👤</div>
+
+    <div id="ui-layer">
+        <p style="margin: 0 0 10px 0; font-weight: bold; color: #f9a825;">推しにファンサを返そう！</p>
+        <div id="options"></div>
+    </div>
+
+    <div id="result-screen">
+        <h1 id="rank-title" style="font-size: 48px; color: #fbc02d;"></h1>
+        <p id="rank-desc" style="font-size: 24px;"></p>
+        <button class="btn" onclick="location.reload()">もう一度ライブへ！</button>
+    </div>
+</div>
+
+<script>
+const idolContainer = document.getElementById('idol-container');
+const fan = document.getElementById('fan');
+const fanSpeech = document.getElementById('fan-speech');
+const fanReaction = document.getElementById('fan-reaction');
+const uiLayer = document.getElementById('ui-layer');
+const optionsDiv = document.getElementById('options');
+const poseDisplay = document.getElementById('pose-display');
+const openingScreen = document.getElementById('opening-screen');
+
+const poses = [
+    { name: "ハートして！", icon: "🫶 ハート", emoji: "🫶" },
+    { name: "ピースして！", icon: "✌️ ピース", emoji: "✌️" },
+    { name: "手振って！", icon: "👋 手を振る", emoji: "👋" },
+    { name: "OKポーズして！", icon: "👌 OK", emoji: "👌" }
+];
+
+let round = 0;
+let score = 0;
+
+function startGame() {
+    openingScreen.style.display = "none";
+    startRound();
+}
+
+function startRound() {
+    if (round >= 5) {
+        showResult();
+        return;
+    }
+
+    idolContainer.style.transition = "none";
+    idolContainer.style.right = "-350px"; 
+    poseDisplay.innerText = "";
+    fan.innerText = "👤"; 
+    
+    fanSpeech.style.display = "none";
+    fanReaction.style.display = "none";
+    uiLayer.style.display = "none";
+
+    setTimeout(() => {
+        idolContainer.style.transition = "right 1.2s ease-out";
+        idolContainer.style.right = "calc(50% - 100px)"; 
+        
+        setTimeout(() => {
+            const currentQuest = poses[Math.floor(Math.random() * poses.length)];
+            fanSpeech.innerText = currentQuest.name;
+            fanSpeech.style.display = "block";
+            showOptions(currentQuest);
+        }, 1300);
+    }, 100);
+}
+
+function showOptions(correct) {
+    uiLayer.style.display = "block";
+    optionsDiv.innerHTML = "";
+    
+    let choices = [...poses].sort(() => 0.5 - Math.random()).slice(0, 3);
+    if (!choices.some(c => c.name === correct.name)) choices[0] = correct;
+    
+    choices.sort(() => 0.5 - Math.random()).forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = "btn";
+        btn.innerText = choice.icon;
+        btn.onclick = () => checkAnswer(choice, correct);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(choice, correct) {
+    uiLayer.style.display = "none";
+    poseDisplay.innerText = choice.emoji; 
+    
+    if (choice.name === correct.name) {
+        score++;
+        fanReaction.innerText = "💛"; 
+    } else {
+        fanReaction.innerText = "🌀"; 
+    }
+    fanReaction.style.display = "block";
+
+    setTimeout(() => {
+        fanSpeech.style.display = "none";
+        fanReaction.style.display = "none";
+        idolContainer.style.transition = "right 1.2s ease-in";
+        idolContainer.style.right = "120%"; 
+        
+        setTimeout(() => {
+            round++;
+            startRound();
+        }, 1300);
+    }, 1200);
+}
+
+function showResult() {
+    const screen = document.getElementById('result-screen');
+    const title = document.getElementById('rank-title');
+    let rank = "";
+
+    if (score === 5) rank = "神ファンサ";
+    else if (score === 4) rank = "なかなかのファンサ";
+    else if (score === 2 || score === 3) rank = "可もなく不可もないファンサ";
+    else if (score === 1) rank = "ファンサ初心者";
+    else rank = "一般人";
+
+    title.innerText = rank;
+    document.getElementById('rank-desc').innerText = `全5問中 ${score}問 正解！`;
+    screen.style.display = "flex";
+}
+</script>
+</body>
+</html>
